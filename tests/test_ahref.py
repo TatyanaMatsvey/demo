@@ -31,3 +31,5 @@ class TestLogin:
         for item in items:
             href = item.get_attribute('target')
             print(href)
+
+        #

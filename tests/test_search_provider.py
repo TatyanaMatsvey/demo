@@ -48,3 +48,20 @@ class TestSearch:
 
         x = check_provider.text[0:2]
         assert x == "Ar", "no match"
+
+        """testing search field"""
+        # find search field and send "ar"
+        search_field = driver.find_element(by=By.XPATH, value=".//input[@id='provider_search_form_providerName']")
+        search_field.clear()
+        search_field.send_keys("Ba")
+        # find and click SEARCH-submit button
+        search_button = driver.find_element(by=By.XPATH, value=".//input[@type='submit']")
+        search_button.click()
+        sleep(3)
+
+        # compare first search resul with search query "Ba"
+        check_provider = driver.find_element(by=By.XPATH,
+                                             value="/html/body/div/div/section[2]/div/div[2]/table/tbody/tr[1]/td[2]")
+
+        x = check_provider.text[0:2]
+        assert x == "Ba", "no match"

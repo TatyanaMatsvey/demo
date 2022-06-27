@@ -1,25 +1,28 @@
 import random
 import string
+from telnetlib import EC
 from time import sleep
 from selenium.webdriver import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 from constants.add_new_demo_page import AddNewDemoPageConstants
 from constants.base import BaseConstants
 from constants.login_page import LoginPageConstants
 from selenium.webdriver.chrome import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
 
 
-class TestAddDemo:
-    """Positive test to ADD NEW DEMO
-    - authorization on Tody
-    - go to ADD NEW DEMO page
-    - fill all fields with valid data
-    - press save button
-    - assert SUCCESS message"""
+class TestDeleteDemo:
+    """Positive test to delete demo:
+    - Authorization on Tody
+    - Go to ADD NEW DEMO page
+    - Create new demo named 'Testing'
+    - Find new demo 'Testing' on demo list
+    - Open Edit page
+    - Delete 'Testing' demo
+    - Check Demo List, 'Testing' demo not exist """
 
-    def test_adddemo(self):
+    def test_delete_demo(self):
         # Authorization
         driver = webdriver.WebDriver(executable_path="../drivers/chromedriver")
         driver.get(BaseConstants.URL)
@@ -47,42 +50,17 @@ class TestAddDemo:
         # find end fill demo name
         demo_name = driver.find_element(by=By.XPATH, value=AddNewDemoPageConstants.DEMO_NAME_XPATH)
         demo_name.clear()
-        rnd_word = f" {''.join(random.choice(string.ascii_letters) for i in range(10))}  test0 "
-        demo_name.send_keys(rnd_word)
-
-        # provider
-        provider_list = driver.find_element(by=By.XPATH, value=".//span[@class='select2-selection__rendered']")
-        provider_list.click()
-        provider_choice = driver.find_element(by=By.XPATH,
-                                              value=".//li[@class='select2-results__option select2-results__option--highlighted']")
-        provider_choice.click()
-
-        # tags
-        tags_list = driver.find_element(by=By.XPATH,
-                                        value=".//span[@class='select2-selection select2-selection--multiple']")
-        tags_list.click()
-        tags_choice = driver.find_element(by=By.XPATH,
-                                          value=".//li[@class='select2-results__option select2-results__option--highlighted']")
-        tags_choice.click()
-
-        # defaul language
-        default_language = driver.find_element(by=By.XPATH, value=".//select[@id='demo_defaultLanguage']")
-        default_language.click()
-        default_choice = driver.find_element(by=By.XPATH, value="//*[@id='demo_defaultLanguage']/option[5]")
-        default_choice.click()
+        demo_name.send_keys("Testing")
 
         '''Demo Links'''
-        # language choice
-        language_list = driver.find_element(by=By.XPATH, value="//*[@id='demo_links_0_language']/option[5]")
-        language_list.click()
-
         # language checkbox active
         active_checkbox = driver.find_element(by=By.XPATH, value=AddNewDemoPageConstants.ACTIVE_CHECKBOX_XPATH)
         active_checkbox.click()
-        #
-        # # language checkbox Replace
+
+        # language checkbox Replace
         # replace_checkbox = driver.find_element(by=By.XPATH, value = ".//input[@type='checkbox' and "
         #                                                             "@id='demo_links_0_replacement']")
+        # replace_checkbox.click()
 
         # find end fill HTML field
         HTML_field = driver.find_element(by=By.XPATH, value=AddNewDemoPageConstants.HTML_FIELD_XPATH)
@@ -94,14 +72,6 @@ class TestAddDemo:
         HTML_mobile_field.clear()
         HTML_mobile_field.send_keys(AddNewDemoPageConstants.MOBILE_HTML_VALUE)
         sleep(1)
-
-        '''Comment'''
-
-        # find and fill comment field
-        comment_input = driver.find_element(by=By.XPATH, value=".//textarea[@id='demo_comment']")
-        comment_input.clear()
-        comment_input.send_keys(f" {''.join(random.choice(string.ascii_letters) for i in range(10))} and this is the "
-                                f"end of the comment ")
 
         '''Features'''
         # free spins checkbox
@@ -219,4 +189,41 @@ class TestAddDemo:
 
         success_message = driver.find_element(by=By.XPATH, value=".//h5")
         assert success_message.text == AddNewDemoPageConstants.SUCCESS_MESSAGE_TEXT, "Сообщение об успешном создании демки не подтверждено"
+
+        # go to demo list
+        demos_button = driver.find_element(by=By.XPATH, value=".//a[@href='/demo/list']")
+        demos_button.click()
+
+        # search first name in table demo list and see that demo @deleted@ is real
+        first_demo_title = driver.find_element(by=By.XPATH,
+                                               value="/html/body/div/div/section[2]/div/div[2]/table/tbody/tr[1]/td[2]/a")
+        compare = first_demo_title.text[0:7]
+        assert compare == "Testing", "no match"
+
+        '''part 3
+        - go to edit page
+        - delete new adding demo with name Testing
+        - see, that Testing demo not exist'''
+
+        # find edit button for first cell in table (Testing demo)
+        edit_button = driver.find_element(by=By.XPATH,
+                                          value="/html/body/div/div/section[2]/div/div[2]/table/tbody/tr[1]/td[12]/a/i")
+        edit_button.click()
+        sleep(3)
+
+        new_tab = driver.switch_to.window(driver.window_handles[1])
+        sleep(3)
+
+        delete_button = driver.find_element(by=By.XPATH, value=".//a[@class='btn btn-danger']")
+        delete_button.click()
+        sleep(5)
+
+        accept_ok = driver.switch_to.alert.accept()
+        sleep(5)
+
+        first_demo_title = driver.find_element(by=By.XPATH,
+                                               value="/html/body/div/div/section[2]/div/div[2]/table/tbody/tr[1]/td[2]/a")
+        compare = first_demo_title.text[0:7]
+        assert compare != "Testing", "not deleted"
+
         driver.close()

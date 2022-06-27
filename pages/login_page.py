@@ -34,3 +34,7 @@ class LoginPage(BasePage):
     def verify_incorrect_login(self):
         error_message = self.driver.find_element(by=By.XPATH, value=self.constants.ERROR_MESSAGE_XPATH)
         assert error_message.text == self.constants.ERROR_MESSAGE_TEXT
+
+    def verify_empy_fields(self):
+        sign_in_button = self.driver.find_element(by=By.XPATH, value=self.constants.SUBMIT_BUTTON_XPATH)
+        sign_in_button.is_displayed()
